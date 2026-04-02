@@ -1,0 +1,49 @@
+// ============================================================
+// Rule Name:    Anomalous Sign-In Pattern - Cloud and Host Correlation
+// Description:  Correlates Microsoft Entra ID sign-in failures with
+//               Windows host-level failed logons from the same source IP.
+// Severity:     Medium
+// Tactics:      Initial Access, Lateral Movement
+// Techniques:   T1110 - Brute Force, T1078 - Valid Accounts
+// Schedule:     Run every 1 hour, look back 24 hours
+// NOTE:         Requires Entra ID P1/P2 license for SigninLogs
+// ============================================================
+
+let EntraFailures = SigninLogs
+    | where TimeGenerated > ago(24h)
+    | where ResultType != "0"
+    | summarize
+        EntraFailedCount = count(),
+        Locations = make_set(Location),
+        FirstCloudFail = min(TimeGenerated)
+        by UserPrincipalName, IPAddress;
+let HostFailures = SecurityEvent
+    | where EventID == 4625
+    | where TimeGenerated > ago(24h)
+    | summarize
+        HostFailedCount = count(),
+        TargetAccounts = make_set(Account),
+        FirstHostFail = min(TimeGenerated)
+        by IpAddress;
+EntraFailures
+| join kind=inner HostFailures on $left.IPAddress == $right.IpAddress
+| where EntraFailedCount > 3 and HostFailedCount > 3
+| extend
+    TotalFailures = EntraFailedCount + HostFailedCount,
+    RiskIndicator = case(
+        TotalFailures > 50, "Critical",
+        TotalFailures > 20, "High",
+        "Medium"
+    )
+| project
+    UserPrincipalName,
+    IPAddress,
+    EntraFailedCount,
+    HostFailedCount,
+    TotalFailures,
+    Locations,
+    TargetAccounts,
+    RiskIndicator,
+    FirstCloudFail,
+    FirstHostFail
+| order by TotalFailures desc
