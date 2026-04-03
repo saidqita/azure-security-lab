@@ -8,9 +8,9 @@
 | **Severity** | High |
 | **Status** | Resolved |
 | **Detection Source** | Microsoft Sentinel — Brute Force Detection Analytics Rule |
-| **Date/Time Detected** | [Timestamp from Sentinel incident] |
-| **Date/Time Resolved** | [Timestamp when lab simulation ended] |
-| **Analyst** | [Your name] |
+| **Date/Time Detected** | 02:15 |
+| **Date/Time Resolved** | 02:48 |
+| **Analyst** | Said Qita |
 
 ---
 
@@ -31,7 +31,7 @@
 | Field | Detail |
 |---|---|
 | Attacker VM | LinuxVM-Attacker |
-| Attacker IP | [IP of LinuxVM-Attacker] |
+| Attacker IP | 20.240.62.34 |
 | Tool Used | Hydra (THC) — credential brute-force tool |
 | Attack Vector | RDP (TCP port 3389) |
 | Method | Dictionary attack using wordlist of common passwords |
